@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrano Tools | The Abyssal AI Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#050505',
+                        abyss: '#0a0a0a',
+                        surface: '#121212',
+                        demon: '#FF0036', // Neon Red
+                        demonDark: '#990020',
+                        mist: '#E5E5E5',
+                        ash: '#888888'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(255, 0, 54, 0.5), 0 0 20px rgba(255, 0, 54, 0.3)',
+                        'neon-hover': '0 0 15px rgba(255, 0, 54, 0.7), 0 0 30px rgba(255, 0, 54, 0.4)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF0036; }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-panel:hover {
+            border-color: rgba(255, 0, 54, 0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 54, 0.1);
+        }
+
+        /* Text Utilities */
+        .text-gradient {
+            background: linear-gradient(to right, #fff, #999);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .text-demon {
+            background: linear-gradient(to right, #FF0036, #ff4d6d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Loader */
+        .demon-loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #333;
+            border-bottom-color: #FF0036;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Transitions */
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.3s, transform 0.3s; }
+    </style>
+</head>
+<body class="bg-void text-mist font-sans antialiased overflow-x-hidden relative selection:bg-demon selection:text-white">
+
+    <!-- Background Ambience -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-demon/10 rounded-full blur-[128px]"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-900/10 rounded-full blur-[128px]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center cursor-pointer" onclick="router('home')">
+                    <i class="fa-solid fa-dragon text-demon text-3xl mr-3 animate-pulse-slow"></i>
+                    <div class="flex flex-col">
+                        <span class="font-display font-bold text-2xl tracking-wider text-white">INFRANO</span>
+                        <span class="text-[10px] text-demon uppercase tracking-[0.3em]">Tools UI v1</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <button onclick="router('home')" class="hover:text-demon transition-colors duration-300">Home</button>
+                        <button onclick="router('tools')" class="hover:text-demon transition-colors duration-300">All Tools</button>
+                        <button onclick="router('about')" class="hover:text-demon transition-colors duration-300">About & Vision</button>
+                        <button onclick="router('faq')" class="hover:text-demon transition-colors duration-300">FAQ</button>
+                        <a href="#login" class="px-6 py-2 rounded-full border border-demon/50 text-demon hover:bg-demon hover:text-white transition-all duration-300 shadow-neon">
+                            Access Terminal
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white p-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-abyss border-b border-white/10">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="router('home')" class="block px-3 py-2 rounded-md text-base font-medium w-full text-left hover:bg-white/5">Home</button>
+                <button onclick="router('tools')" class="block px-3 py-2 rounded-md text-base font-medium w-full text-left hover:bg-white/5">All Tools</button>
+                <button onclick="router('about')" class="block px-3 py-2 rounded-md text-base font-medium w-full text-left hover:bg-white/5">About</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="app-container" class="relative z-10 pt-24 min-h-screen pb-20">
+        <!-- Content injected via JS -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-black pt-16 pb-8 z-10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-1 md:col-span-1">
+                    <span class="font-display font-bold text-xl tracking-wider text-white">INFRANO</span>
+                    <p class="mt-4 text-ash text-sm leading-relaxed">
+                        Forged in the void between code and chaos. We engineer high-performance AI tools for the builders of tomorrow.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Platform</h3>
+                    <ul class="space-y-2 text-sm text-ash">
+                        <li><a href="#" onclick="router('tools')" class="hover:text-demon">All Tools</a></li>
+                        <li><a href="#" class="hover:text-demon">Pricing</a></li>
+                        <li><a href="#" class="hover:text-demon">API Access</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Company</h3>
+                    <ul class="space-y-2 text-sm text-ash">
+                        <li><a href="#" onclick="router('about')" class="hover:text-demon">About Us</a></li>
+                        <li><a href="#" onclick="router('about')" class="hover:text-demon">Mission</a></li>
+                        <li><a href="#" onclick="router('legal')" class="hover:text-demon">Privacy Policy</a></li>
+                        <li><a href="#" onclick="router('legal')" class="hover:text-demon">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-4">Connect</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-demon hover:text-white transition-all"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-demon hover:text-white transition-all"><i class="fab fa-github"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-demon hover:text-white transition-all"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 text-center text-xs text-ash">
+                &copy; 2025 Infrano Tools. All rights reserved. System Operational.
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIC & DATA -->
+    <script>
+        // --- DATA LAYER ---
+        const toolsData = [
+            // A. Text & Writing
+            { id: 1, name: "InferScript Pro", tagline: "Forge articulate text from the void.", cat: "Text", type: "input-gen", icon: "fa-pen-nib" },
+            { id: 2, name: "AbyssSumm", tagline: "Condense chaos into clarity.", cat: "Text", type: "input-gen", icon: "fa-compress-arrows-alt" },
+            { id: 3, name: "ReWraith", tagline: "Rewrite destiny with new words.", cat: "Text", type: "input-gen", icon: "fa-sync" },
+            { id: 4, name: "ScreenPlay Demon", tagline: "Scripts that captivate souls.", cat: "Text", type: "input-gen", icon: "fa-film" },
+            { id: 5, name: "ChatForged", tagline: "Construct conversational entities.", cat: "Text", type: "config", icon: "fa-robot" },
+            { id: 6, name: "MailSpecter", tagline: "Professional emails, instantly summoned.", cat: "Text", type: "input-gen", icon: "fa-envelope" },
+            { id: 7, name: "CV Warlock", tagline: "Enchant recruiters with your history.", cat: "Text", type: "form", icon: "fa-file-alt" },
+            { id: 8, name: "BrandBeast", tagline: "Names that echo in eternity.", cat: "Text", type: "input-gen", icon: "fa-tag" },
+            { id: 9, name: "DescryProduct", tagline: "Sell objects with hypnotic copy.", cat: "Text", type: "input-gen", icon: "fa-shopping-cart" },
+            { id: 10, name: "SocialSiren", tagline: "Captions that command attention.", cat: "Text", type: "input-gen", icon: "fa-hashtag" },
+
+            // B. Coding
+            { id: 11, name: "InferCode Architect", tagline: "Generate entire functions from thought.", cat: "Code", type: "code", icon: "fa-code" },
+            { id: 12, name: "NexusAPI Builder", tagline: "Construct endpoints in the ether.", cat: "Code", type: "code", icon: "fa-server" },
+            { id: 13, name: "BugExorcist", tagline: "Banish errors to the shadow realm.", cat: "Code", type: "code", icon: "fa-bug" },
+            { id: 14, name: "HellSight SQL", tagline: "Query the deepest databases.", cat: "Code", type: "code", icon: "fa-database" },
+            { id: 15, name: "RegexReaper", tagline: "Pattern matching made lethal.", cat: "Code", type: "code", icon: "fa-asterisk" },
+            { id: 16, name: "ArchDemon Design", tagline: "Scaffold app architectures instantly.", cat: "Code", type: "config", icon: "fa-sitemap" },
+            { id: 17, name: "DocuMancer", tagline: "Turn code into sacred scrolls.", cat: "Code", type: "code", icon: "fa-book" },
+            { id: 18, name: "ComponentConjurer", tagline: "UI elements materialized.", cat: "Code", type: "code", icon: "fa-cube" },
+            { id: 19, name: "CodeOracle", tagline: "Explain the inexplicable logic.", cat: "Code", type: "code", icon: "fa-comment-dots" },
+            { id: 20, name: "TestTitan", tagline: "Automated API stress testing.", cat: "Code", type: "config", icon: "fa-vial" },
+
+            // C. Image
+            { id: 21, name: "VoidCut BG", tagline: "Sever the subject from reality.", cat: "Image", type: "upload", icon: "fa-cut" },
+            { id: 22, name: "ClarityFiend", tagline: "Enhance visuals to god-tier.", cat: "Image", type: "upload", icon: "fa-magic" },
+            { id: 23, name: "DemonScale 4K", tagline: "Upscale without losing soul.", cat: "Image", type: "upload", icon: "fa-expand" },
+            { id: 24, name: "Animefy Core", tagline: "Turn reality into animation.", cat: "Image", type: "upload", icon: "fa-paint-brush" },
+            { id: 25, name: "SigilMaker", tagline: "Logos forged in fire.", cat: "Image", type: "input-gen", icon: "fa-bezier-curve" },
+            { id: 26, name: "AvatarAscend", tagline: "Your digital demon visage.", cat: "Image", type: "input-gen", icon: "fa-user-circle" },
+            { id: 27, name: "MemeLord", tagline: "Viral chaos generator.", cat: "Image", type: "upload", icon: "fa-laugh-squint" },
+            { id: 28, name: "NetherFilter", tagline: "Atmospheric overlays.", cat: "Image", type: "upload", icon: "fa-filter" },
+            { id: 29, name: "ChromaThief", tagline: "Steal colors from any image.", cat: "Image", type: "upload", icon: "fa-palette" },
+            { id: 30, name: "StyleMorph", tagline: "Transfer artistic essence.", cat: "Image", type: "upload", icon: "fa-random" },
+
+            // D. Audio/Video
+            { id: 31, name: "AbyssVoice", tagline: "Text to haunting speech.", cat: "Audio", type: "input-gen", icon: "fa-microphone-alt" },
+            { id: 32, name: "Doppelganger", tagline: "Clone any voice instantly.", cat: "Audio", type: "upload", icon: "fa-fingerprint" },
+            { id: 33, name: "PodCaster AI", tagline: "Edit silence and noise.", cat: "Audio", type: "upload", icon: "fa-podcast" },
+            { id: 34, name: "AutoScribe Video", tagline: "Subtitles from the sound.", cat: "Video", type: "upload", icon: "fa-closed-captioning" },
+            { id: 35, name: "VidShrink", tagline: "Summarize visual stories.", cat: "Video", type: "upload", icon: "fa-video" },
+            { id: 36, name: "SilenceSeeker", tagline: "Remove background noise.", cat: "Audio", type: "upload", icon: "fa-volume-mute" },
+            { id: 37, name: "BeatBeast", tagline: "Generate royalty-free tracks.", cat: "Audio", type: "input-gen", icon: "fa-music" },
+            { id: 38, name: "SFX Smith", tagline: "Create sound effects.", cat: "Audio", type: "input-gen", icon: "fa-wave-square" },
+            { id: 39, name: "AspectShifter", tagline: "Resize video for socials.", cat: "Video", type: "upload", icon: "fa-ruler-combined" },
+            { id: 40, name: "IdentityBlur", tagline: "Obscure faces in motion.", cat: "Video", type: "upload", icon: "fa-user-secret" },
+
+            // E. Documents
+            { id: 41, name: "PDF Phantom", tagline: "Extract data from locked files.", cat: "Docs", type: "upload", icon: "fa-file-pdf" },
+            { id: 42, name: "DocTransmute", tagline: "Format converter.", cat: "Docs", type: "upload", icon: "fa-exchange-alt" },
+            { id: 43, name: "HellSight OCR", tagline: "Read text from images.", cat: "Docs", type: "upload", icon: "fa-eye" },
+            { id: 44, name: "TomeShrink", tagline: "Summarize entire ebooks.", cat: "Docs", type: "upload", icon: "fa-book-open" },
+            { id: 45, name: "SlideSorcerer", tagline: "Generate PPTs from text.", cat: "Docs", type: "input-gen", icon: "fa-chalkboard-teacher" },
+            { id: 46, name: "PactMaker", tagline: "Generate legal contracts.", cat: "Docs", type: "form", icon: "fa-file-contract" },
+            { id: 47, name: "ReportReaper", tagline: "Analyze business reports.", cat: "Docs", type: "upload", icon: "fa-chart-pie" },
+            { id: 48, name: "ExcelEntity", tagline: "Spreadsheet formula generator.", cat: "Docs", type: "input-gen", icon: "fa-table" },
+
+            // F. Business
+            { id: 49, name: "TaskGolem", tagline: "Automate repetitive clicks.", cat: "Biz", type: "config", icon: "fa-tasks" },
+            { id: 50, name: "FlowForged", tagline: "Visual workflow builder.", cat: "Biz", type: "config", icon: "fa-project-diagram" },
+            { id: 51, name: "FocusFiend", tagline: "Productivity dashboard.", cat: "Biz", type: "dashboard", icon: "fa-clock" },
+            { id: 52, name: "MeetMinder", tagline: "AI Meeting notes & summary.", cat: "Biz", type: "upload", icon: "fa-handshake" },
+            { id: 53, name: "LeadHunter", tagline: "Scrape leads from the web.", cat: "Biz", type: "input-gen", icon: "fa-bullseye" },
+            { id: 54, name: "MarketMaw", tagline: "Generate ad copy scales.", cat: "Biz", type: "input-gen", icon: "fa-ad" },
+            { id: 55, name: "SEO Serpent", tagline: "Optimize for the algorithm.", cat: "Biz", type: "input-gen", icon: "fa-search" },
+            { id: 56, name: "CRM Insight", tagline: "Predict customer churn.", cat: "Biz", type: "upload", icon: "fa-users" },
+            { id: 57, name: "BillBlade", tagline: "Instant invoice generator.", cat: "Biz", type: "form", icon: "fa-file-invoice-dollar" },
+            { id: 58, name: "FormFiend", tagline: "Build complex forms.", cat: "Biz", type: "config", icon: "fa-list-alt" },
+        ];
+
+        // --- VIEWS ---
+
+        const views = {
+            home: () => `
+                <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[80vh] text-center">
+                    <div class="animate-float mb-6">
+                         <i class="fa-solid fa-circle-nodes text-6xl text-demon drop-shadow-[0_0_15px_rgba(255,0,54,0.8)]"></i>
+                    </div>
+                    <h1 class="text-5xl md:text-8xl font-display font-black text-white mb-6 tracking-tight">
+                        FORGED IN THE <br><span class="text-demon text-glow">VOID</span>
+                    </h1>
+                    <p class="text-xl md:text-2xl text-ash max-w-2xl mb-10 font-light">
+                        50+ Professional AI Tools. Demon-Lord Aesthetic. <br>
+                        Production-ready intelligence for the modern architect.
+                    </p>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <button onclick="router('tools')" class="px-8 py-4 bg-demon text-white rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition-all duration-300 shadow-neon hover:shadow-white">
+                            Explore Arsenal
+                        </button>
+                        <button onclick="router('about')" class="px-8 py-4 glass-panel text-white rounded-2xl font-bold text-lg hover:border-demon transition-all duration-300">
+                            Our Vision
+                        </button>
+                    </div>
+                    
+                    <!-- Feature Grid Mini -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 w-full opacity-80">
+                        <div class="glass-panel p-6 rounded-2xl text-center">
+                            <i class="fa-solid fa-bolt text-demon text-2xl mb-2"></i>
+                            <h3 class="font-bold">Lightning Fast</h3>
+                        </div>
+                        <div class="glass-panel p-6 rounded-2xl text-center">
+                            <i class="fa-solid fa-shield-halved text-demon text-2xl mb-2"></i>
+                            <h3 class="font-bold">Secure Core</h3>
+                        </div>
+                        <div class="glass-panel p-6 rounded-2xl text-center">
+                            <i class="fa-solid fa-infinity text-demon text-2xl mb-2"></i>
+                            <h3 class="font-bold">Unlimited Scale</h3>
+                        </div>
+                        <div class="glass-panel p-6 rounded-2xl text-center">
+                            <i class="fa-solid fa-code text-demon text-2xl mb-2"></i>
+                            <h3 class="font-bold">Dev Friendly</h3>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            tools: () => `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-enter-active">
+                    <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-white/10 pb-6">
+                        <div>
+                            <h2 class="text-4xl font-display font-bold text-white mb-2">The Arsenal</h2>
+                            <p class="text-ash">Select a category to summon your tool.</p>
+                        </div>
+                        <div class="flex space-x-2 mt-4 md:mt-0 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
+                            <button onclick="filterTools('All')" class="filter-btn active px-4 py-2 rounded-lg bg-demon text-white text-sm font-bold">All</button>
+                            <button onclick="filterTools('Text')" class="filter-btn px-4 py-2 rounded-lg bg-surface text-ash hover:text-white hover:bg-white/10 text-sm transition">Text</button>
+                            <button onclick="filterTools('Code')" class="filter-btn px-4 py-2 rounded-lg bg-surface text-ash hover:text-white hover:bg-white/10 text-sm transition">Code</button>
+                            <button onclick="filterTools('Image')" class="filter-btn px-4 py-2 rounded-lg bg-surface text-ash hover:text-white hover:bg-white/10 text-sm transition">Image</button>
+                            <button onclick="filterTools('Audio')" class="filter-btn px-4 py-2 rounded-lg bg-surface text-ash hover:text-white hover:bg-white/10 text-sm transition">Audio</button>
+                            <button onclick="filterTools('Biz')" class="filter-btn px-4 py-2 rounded-lg bg-surface text-ash hover:text-white hover:bg-white/10 text-sm transition">Business</button>
+                        </div>
+                    </div>
+
+                    <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${renderToolsGrid(toolsData)}
+                    </div>
+                </div>
+            `,
+
+            toolView: (toolId) => {
+                const tool = toolsData.find(t => t.id == toolId);
+                return `
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 fade-enter-active">
+                    <button onclick="router('tools')" class="mb-6 text-sm text-ash hover:text-demon flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Arsenal
+                    </button>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Left Panel: Controls -->
+                        <div class="lg:col-span-4 space-y-6">
+                            <div class="glass-panel p-8 rounded-3xl border-t border-demon/20">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 rounded-xl bg-demon/10 flex items-center justify-center mr-4 border border-demon/30">
+                                        <i class="fas ${tool.icon} text-demon text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h1 class="text-2xl font-bold text-white leading-tight">${tool.name}</h1>
+                                        <span class="text-xs uppercase tracking-widest text-ash">${tool.cat} Module</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-400 mb-6">${tool.tagline}</p>
+                                
+                                <div class="space-y-4">
+                                    ${renderToolInputs(tool.type)}
+                                </div>
+
+                                <button onclick="simulateGeneration()" class="w-full mt-8 py-4 bg-demon hover:bg-red-600 text-white font-bold rounded-xl shadow-neon hover:shadow-neon-hover transition-all duration-300 flex justify-center items-center group">
+                                    <span>Initiate Sequence</span>
+                                    <i class="fas fa-bolt ml-2 group-hover:animate-pulse"></i>
+                                </button>
+                            </div>
+
+                            <!-- Settings / History -->
+                            <div class="glass-panel p-6 rounded-2xl opacity-60 hover:opacity-100 transition">
+                                <h3 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Configuration</h3>
+                                <div class="flex items-center justify-between mb-3 text-sm">
+                                    <span class="text-ash">Creativity Level</span>
+                                    <span class="text-demon">High</span>
+                                </div>
+                                <div class="w-full bg-surface h-1 rounded-full mb-4">
+                                    <div class="bg-demon h-1 rounded-full w-3/4 shadow-[0_0_10px_#FF0036]"></div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-ash">Speed Mode</span>
+                                    <i class="fas fa-toggle-on text-demon text-xl cursor-pointer"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Output -->
+                        <div class="lg:col-span-8">
+                            <div class="h-full min-h-[500px] glass-panel rounded-3xl p-1 relative flex flex-col">
+                                <div class="bg-black/40 rounded-t-[20px] px-6 py-3 border-b border-white/5 flex justify-between items-center">
+                                    <span class="text-xs font-mono text-ash">OUTPUT_TERMINAL_V1</span>
+                                    <div class="flex space-x-2">
+                                        <div class="w-3 h-3 rounded-full bg-red-500/20"></div>
+                                        <div class="w-3 h-3 rounded-full bg-yellow-500/20"></div>
+                                        <div class="w-3 h-3 rounded-full bg-green-500/20"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="output-area" class="flex-grow p-8 flex flex-col items-center justify-center text-center">
+                                    <div class="text-ash/30">
+                                        <i class="fas fa-cube text-6xl mb-4"></i>
+                                        <p class="font-mono text-sm">Waiting for input data...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+
+            about: () => `
+                <div class="max-w-4xl mx-auto px-4 pt-10 fade-enter-active">
+                    <div class="text-center mb-16">
+                        <h1 class="text-5xl font-display font-bold text-white mb-6">THE <span class="text-demon">ORIGIN</span></h1>
+                        <p class="text-xl text-ash">Where code meets the abyss.</p>
+                    </div>
+
+                    <div class="glass-panel p-8 md:p-12 rounded-3xl mb-12 border-l-4 border-demon">
+                        <h2 class="text-2xl font-bold text-white mb-4">About Us</h2>
+                        <p class="text-ash leading-relaxed mb-6">
+                            Forged in the void between code and chaos, Infrano Tools was awakened to serve a singular purpose: to arm creators with the raw power of artificial intelligence, stripped of complexity and wrapped in elegance.
+                        </p>
+                        <p class="text-ash leading-relaxed">
+                            We believe that high-performance engineering should feel like magic—or perhaps, something darker and more powerful. We bridge the gap between complex neural networks and the click of a button.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                        <div class="glass-panel p-8 rounded-2xl">
+                            <i class="fas fa-eye text-demon text-3xl mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Our Vision</h3>
+                            <p class="text-sm text-ash leading-relaxed">
+                                To forge the world’s most powerful free AI ecosystem—where every creator, developer, and entrepreneur can command next-generation intelligence.
+                            </p>
+                        </div>
+                        <div class="glass-panel p-8 rounded-2xl">
+                            <i class="fas fa-rocket text-demon text-3xl mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Our Mission</h3>
+                            <p class="text-sm text-ash leading-relaxed">
+                                Democratize AI power. Ensure accessibility. Maintain a "Power with Elegance" philosophy in every pixel we render.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-16">
+                         <h2 class="text-2xl font-bold text-white mb-6 text-center">Core Values</h2>
+                         <div class="flex flex-wrap justify-center gap-4">
+                            <span class="px-6 py-2 rounded-full border border-white/10 bg-white/5 text-white">Precision</span>
+                            <span class="px-6 py-2 rounded-full border border-demon/30 bg-demon/10 text-demon shadow-neon">Power</span>
+                            <span class="px-6 py-2 rounded-full border border-white/10 bg-white/5 text-white">Elegance</span>
+                            <span class="px-6 py-2 rounded-full border border-white/10 bg-white/5 text-white">Transparency</span>
+                         </div>
+                    </div>
+                </div>
+            `,
+
+            faq: () => `
+                <div class="max-w-3xl mx-auto px-4 pt-10 fade-enter-active">
+                    <h1 class="text-4xl font-display font-bold text-white mb-10 text-center">Frequently Asked <span class="text-demon">Questions</span></h1>
+                    
+                    <div class="space-y-4">
+                        ${renderFAQItem("Are these tools free?", "Yes. The core arsenal is free for all users. Pro tiers unlock higher limits and faster processing speeds.")}
+                        ${renderFAQItem("Do you store my data?", "We operate on a 'Process & Purge' philosophy. Your files are processed in the cloud and immediately deleted upon completion.")}
+                        ${renderFAQItem("Can I use the output commercially?", "Absolutely. Anything you generate with Infrano Tools belongs to you.")}
+                        ${renderFAQItem("How do I report a bug?", "Use the 'BugExorcist' tool in the coding section, or email our support channel.")}
+                    </div>
+                </div>
+            `,
+            
+            legal: () => `
+                <div class="max-w-4xl mx-auto px-4 pt-10 fade-enter-active text-ash">
+                    <h1 class="text-3xl font-bold text-white mb-8">Legal & Privacy</h1>
+                    <div class="glass-panel p-8 rounded-2xl mb-8">
+                        <h2 class="text-xl text-white font-bold mb-4">Terms of Service</h2>
+                        <p class="mb-4 text-sm">By accessing Infrano Tools, you agree to use our AI capabilities responsibly. You must not use the generated content for illegal activities, hate speech, or deepfake harassment.</p>
+                        <p class="text-sm">We reserve the right to ban any IP address that abuses our API limits or attempts to reverse-engineer our proprietary models.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-2xl">
+                        <h2 class="text-xl text-white font-bold mb-4">Privacy Policy</h2>
+                        <p class="mb-4 text-sm"><strong>Data Collection:</strong> We collect only necessary telemetry data to improve tool performance. No personal identifiers are stored without consent.</p>
+                        <p class="text-sm"><strong>Third Parties:</strong> Some tools leverage APIs from OpenAI, StabilityAI, and HuggingFace. Data sent to these providers is subject to their respective privacy policies.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- RENDER HELPERS ---
+
+        function renderToolsGrid(tools) {
+            return tools.map(tool => `
+                <div onclick="openTool(${tool.id})" class="group glass-panel p-6 rounded-2xl cursor-pointer hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-demon to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-demon/20 transition-colors">
+                            <i class="fas ${tool.icon} text-ash group-hover:text-demon text-xl transition-colors"></i>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase border border-white/10 px-2 py-1 rounded text-ash group-hover:border-demon/50 group-hover:text-demon transition-colors">${tool.cat}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1 group-hover:text-demon transition-colors">${tool.name}</h3>
+                    <p class="text-sm text-gray-500 line-clamp-2 group-hover:text-gray-400 transition-colors">${tool.tagline}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderToolInputs(type) {
+            if (type === 'input-gen') {
+                return `
+                    <label class="block text-xs font-bold text-ash uppercase mb-2">Primary Input</label>
+                    <textarea class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-demon focus:outline-none focus:ring-1 focus:ring-demon transition h-32" placeholder="Enter your text, prompt, or parameters here..."></textarea>
+                `;
+            } else if (type === 'upload') {
+                return `
+                    <div class="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-demon/50 hover:bg-white/5 transition cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-ash mb-3"></i>
+                        <p class="text-sm font-bold text-white">Drop File Here</p>
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, PDF, MP4 supported</p>
+                    </div>
+                `;
+            } else if (type === 'code') {
+                return `
+                    <label class="block text-xs font-bold text-ash uppercase mb-2">Code Context</label>
+                    <div class="bg-black/80 font-mono text-xs p-4 rounded-xl border border-white/10 text-green-400 h-32 overflow-hidden">
+                        // Paste your snippet here<br>function initVoid() {<br>  return null;<br>}
+                    </div>
+                `;
+            } else {
+                return `
+                     <label class="block text-xs font-bold text-ash uppercase mb-2">Configuration</label>
+                     <input type="text" class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-demon focus:outline-none mb-3" placeholder="Project Name">
+                     <select class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-ash focus:border-demon focus:outline-none">
+                        <option>Standard Mode</option>
+                        <option>Demon Mode (High Performance)</option>
+                     </select>
+                `;
+            }
+        }
+
+        function renderFAQItem(q, a) {
+            return `
+                <div class="glass-panel rounded-xl p-6 hover:border-demon/30 transition">
+                    <h3 class="text-lg font-bold text-white mb-2 flex items-center"><i class="fas fa-question-circle text-demon mr-3 text-sm"></i> ${q}</h3>
+                    <p class="text-ash text-sm pl-7">${a}</p>
+                </div>
+            `;
+        }
+
+        // --- CONTROLLER ---
+
+        function router(viewName) {
+            const app = document.getElementById('app-container');
+            window.scrollTo(0,0);
+            
+            if (views[viewName]) {
+                app.innerHTML = views[viewName]();
+            } else {
+                app.innerHTML = views['home']();
+            }
+        }
+
+        function openTool(id) {
+            const app = document.getElementById('app-container');
+            window.scrollTo(0,0);
+            app.innerHTML = views.toolView(id);
+        }
+
+        function filterTools(category) {
+            // Update active button state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-demon', 'text-white');
+                btn.classList.add('bg-surface', 'text-ash');
+                if(btn.innerText === category) {
+                    btn.classList.remove('bg-surface', 'text-ash');
+                    btn.classList.add('bg-demon', 'text-white');
+                }
+            });
+
+            // Filter logic
+            const grid = document.getElementById('tools-grid');
+            let filtered = toolsData;
+            if (category !== 'All') {
+                filtered = toolsData.filter(t => t.cat === category);
+            }
+            grid.innerHTML = renderToolsGrid(filtered);
+        }
+
+        function simulateGeneration() {
+            const outputArea = document.getElementById('output-area');
+            
+            // Loading State
+            outputArea.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <span class="demon-loader mb-6"></span>
+                    <p class="text-demon font-display animate-pulse tracking-widest">SUMMONING...</p>
+                </div>
+            `;
+
+            // Result State (Simulated delay)
+            setTimeout(() => {
+                outputArea.innerHTML = `
+                    <div class="w-full text-left animate-float">
+                        <div class="bg-green-500/10 border border-green-500/20 p-4 rounded-xl mb-4">
+                            <p class="text-green-400 text-sm font-bold"><i class="fas fa-check-circle mr-2"></i> Process Complete</p>
+                        </div>
+                        <h3 class="text-white font-bold mb-2">Generated Output:</h3>
+                        <p class="text-ash text-sm leading-relaxed mb-4">
+                            [System Note: This is a UI demonstration. In a live environment, the API result would appear here.]
+                            <br><br>
+                            The shadows have coalesced into form. Your data has been processed through the Infrano Neural Engine v1. Precision achieved with 99.9% accuracy.
+                        </p>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-xs text-white transition">Copy</button>
+                            <button class="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-xs text-white transition">Download</button>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        }
+        
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- INITIALIZATION ---
+        console.log("Infrano Tools UI Generator v1 Activated.");
+        
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', () => {
+            router('home');
+        });
+
+    </script>
+</body>
+</html>
